@@ -9,5 +9,72 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <h1>Solana Wallet Integration</h1>
+
+    <!-- Button for connecting the wallet -->
+    <button id="connect-wallet">Connect Wallet</button>
+    <p id="wallet-status">Not Connected</p>
+
+    <!-- Button for performing an action that requires a Solana transaction -->
+    <button id="perform-action" disabled>Perform Action</button>
+
+    <script>
+        let walletPublicKey = null;
+
+        // Solana wallet connection handler
+        async function connectWallet() {
+            try {
+                const provider = window.solana;  // Phantom wallet injects this object into the browser
+                if (!provider) {
+                    alert("Solana wallet not found! Please install Phantom.");
+                    return;
+                }
+
+                // Connect to the wallet
+                const res = await provider.connect();
+                walletPublicKey = provider.publicKey.toString();
+                document.getElementById("wallet-status").textContent = `Connected: ${walletPublicKey}`;
+
+                // Enable the perform-action button after connecting wallet
+                document.getElementById("perform-action").disabled = false;
+            } catch (err) {
+                console.error("Wallet connection failed", err);
+            }
+        }
+
+        // Solana transaction handler (example: to increment a count)
+        async function performAction() {
+            try {
+                if (!walletPublicKey) {
+                    alert("Please connect your wallet first!");
+                    return;
+                }
+
+                const connection = new solanaWeb3.Connection(
+                    solanaWeb3.clusterApiUrl('devnet'),
+                    'confirmed'
+                );
+
+                const transaction = new solanaWeb3.Transaction();
+                // You can create and sign a transaction here
+                // This is an example; you can customize the action
+
+                // Example: Just requesting an airdrop (for development)
+                const signature = await connection.requestAirdrop(
+                    new solanaWeb3.PublicKey(walletPublicKey),
+                    solanaWeb3.LAMPORTS_PER_SOL
+                );
+                
+                await connection.confirmTransaction(signature);
+                alert('Transaction completed!');
+            } catch (err) {
+                console.error("Action failed", err);
+            }
+        }
+
+        // Event listeners
+        document.getElementById("connect-wallet").addEventListener("click", connectWallet);
+        document.getElementById("perform-action").addEventListener("click", performAction);
+    </script>
   </body>
 </html>
